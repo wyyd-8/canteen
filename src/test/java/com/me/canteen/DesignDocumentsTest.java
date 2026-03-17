@@ -19,10 +19,18 @@ class DesignDocumentsTest {
         String content = Files.readString(API_DOC);
 
         assertAll(
+                () -> assertTrue(content.contains("## 1. 模块划分（按 Controller）")),
+                () -> assertTrue(content.contains("UserAuthController")),
+                () -> assertTrue(content.contains("UserCartController")),
                 () -> assertTrue(content.contains("/api/v1/user/canteens")),
+                () -> assertTrue(content.contains("/api/v1/user/register")),
+                () -> assertTrue(content.contains("/api/v1/user/cart")),
+                () -> assertTrue(content.contains("/api/v1/user/cart/items")),
                 () -> assertTrue(content.contains("/api/v1/user/orders")),
                 () -> assertTrue(content.contains("/api/v1/user/reservations")),
                 () -> assertTrue(content.contains("/api/v1/user/pickup-qrcodes")),
+                () -> assertTrue(content.contains("AdminDashboardController")),
+                () -> assertTrue(content.contains("AdminStatisticsController")),
                 () -> assertTrue(content.contains("/api/v1/admin/canteens/realtime-occupancy")),
                 () -> assertTrue(content.contains("/api/v1/admin/statistics/dining")),
                 () -> assertTrue(content.contains("/api/v1/admin/statistics/food-sales")),
