@@ -1,11 +1,14 @@
 services:
   app:
-    build: .
-    container_name: canteen-backend
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: canteen-fullstack
     ports:
-      - "8081:8080"
+      - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/canteen?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
+      # 连接到同网络下的 mysql 容器
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/canteen?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: 1234
     depends_on:
@@ -13,6 +16,7 @@ services:
         condition: service_healthy
     networks:
       - canteen-network
+    restart: always
 
   mysql:
     image: mysql:8.0
