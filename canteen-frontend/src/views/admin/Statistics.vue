@@ -38,9 +38,10 @@
             <el-table-column prop="date" label="日期" />
             <el-table-column prop="diningCount" label="实际就餐" />
             <el-table-column prop="reservationCount" label="预约人数" />
-          </el-card>
-        </el-col>
-      </el-row>
+          </el-table>
+        </el-card>
+      </el-col>
+    </el-row>
   </div>
 </template>
 
