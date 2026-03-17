@@ -93,6 +93,10 @@
 - **PUT** `/api/v1/user/cart/items/{foodId}`
 - **DELETE** `/api/v1/user/cart/items/{foodId}`
 
+- 下单说明：
+  - 提交订单时无需传入购买明细（`items`）
+  - 后端根据 `userId` 从购物车读取全部菜品并生成订单明细
+
 ### 2.5 UserOrderController（创建订单，购买食物）
 
 - **POST** `/api/v1/user/orders`
@@ -102,14 +106,13 @@
 {
   "userId": 10001,
   "canteenId": 1,
-  "items": [
-    { "foodId": 501, "quantity": 2 },
-    { "foodId": 607, "quantity": 1 }
-  ],
   "paymentMethod": "WECHAT"
 }
 ```
 
+- 业务约束：
+  - 订单购买明细由后端从购物车读取，不需要前端重复提交
+  - 若购物车为空，不允许创建订单
 - 返回：
   - `orderId`
   - `orderNo`

@@ -26,6 +26,8 @@ class DesignDocumentsTest {
                 () -> assertTrue(content.contains("/api/v1/user/register")),
                 () -> assertTrue(content.contains("/api/v1/user/cart")),
                 () -> assertTrue(content.contains("/api/v1/user/cart/items")),
+                () -> assertTrue(content.contains("提交订单时无需传入购买明细（`items`）")),
+                () -> assertTrue(content.contains("订单购买明细由后端从购物车读取")),
                 () -> assertTrue(content.contains("/api/v1/user/orders")),
                 () -> assertTrue(content.contains("/api/v1/user/reservations")),
                 () -> assertTrue(content.contains("/api/v1/user/pickup-qrcodes")),
@@ -46,6 +48,7 @@ class DesignDocumentsTest {
                 () -> assertTrue(content.contains("CREATE TABLE users")),
                 () -> assertTrue(content.contains("CREATE TABLE canteens")),
                 () -> assertTrue(content.contains("CREATE TABLE food_items")),
+                () -> assertTrue(content.contains("CREATE TABLE shopping_cart_items")),
                 () -> assertTrue(content.contains("CREATE TABLE orders")),
                 () -> assertTrue(content.contains("CREATE TABLE reservations")),
                 () -> assertTrue(content.contains("CREATE TABLE pickup_qr_codes"))

@@ -61,6 +61,19 @@ CREATE TABLE food_items (
     KEY idx_food_sale (canteen_id, is_on_sale)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE shopping_cart_items (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    user_id BIGINT NOT NULL,
+    food_id BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_cart_item_user FOREIGN KEY (user_id) REFERENCES users(id),
+    CONSTRAINT fk_cart_item_food FOREIGN KEY (food_id) REFERENCES food_items(id),
+    UNIQUE KEY uk_cart_user_food (user_id, food_id),
+    KEY idx_cart_user (user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE orders (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     order_no VARCHAR(64) NOT NULL UNIQUE,
