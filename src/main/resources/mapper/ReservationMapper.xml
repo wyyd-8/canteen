@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.me.canteen.mapper.ReservationMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO reservations (reservation_code, user_id, order_id, canteen_id, time_slot_id, seat_id, reservation_status)
+        VALUES (#{reservationCode}, #{userId}, #{orderId}, #{canteenId}, #{timeSlotId}, #{seatId}, #{reservationStatus})
+    </insert>
+
+    <select id="findById" resultType="com.me.canteen.entity.Reservation">
+        SELECT * FROM reservations WHERE id = #{id}
+    </select>
+
+    <select id="findBySlotAndSeat" resultType="com.me.canteen.entity.Reservation">
+        SELECT * FROM reservations 
+        WHERE time_slot_id = #{timeSlotId} AND seat_id = #{seatId} AND reservation_status = 'RESERVED'
+    </select>
+
+    <select id="countReserved" resultType="int">
+        SELECT COUNT(*) FROM reservations 
+        WHERE canteen_id = #{canteenId} 
+        <if test="timeSlotId != null">
+            AND time_slot_id = #{timeSlotId}
+        </if>
+        AND reservation_status = 'RESERVED'
+    </select>
+
+    <select id="countByStatus" resultType="int">
+        SELECT COUNT(*) FROM reservations 
+        WHERE canteen_id = #{canteenId} 
+        <if test="timeSlotId != null">
+            AND time_slot_id = #{timeSlotId}
+        </if>
+        AND reservation_status = #{status}
+    </select>
+
+    <select id="statisticsByDateRange" resultType="com.me.canteen.dto.DiningStatisticsDTO">
+        SELECT 
+            DATE(r.created_at) as date,
+            COUNT(CASE WHEN r.reservation_status = 'CHECKED_IN' THEN 1 END) as diningCount,
+            COUNT(*) as reservationCount
+        FROM reservations r
+        JOIN canteen_time_slots s ON r.time_slot_id = s.id
+        WHERE s.slot_date BETWEEN #{startDate} AND #{endDate}
+        <if test="canteenId != null">
+            AND r.canteen_id = #{canteenId}
+        </if>
+        GROUP BY DATE(r.created_at)
+        ORDER BY date
+    </select>
+</mapper>

@@ -1,0 +1,115 @@
+### 食堂就餐管理系统 - 全链路测试脚本 (V1)
+# 注意：测试前请确保后端服务已启动在 http://localhost:8080
+
+@base_url = http://localhost:8080
+@token = {{login.response.body.data.token}}
+@userId = {{login.response.body.data.id}}
+
+### 1. 用户注册
+# @name register
+POST {{base_url}}/api/v1/user/register
+Content-Type: application/json
+
+{
+  "userName": "测试用户",
+  "phone": "13800001111",
+  "password": "password123"
+}
+
+### 2. 用户登录 -> 获取 Token
+# @name login
+POST {{base_url}}/api/v1/user/login
+Content-Type: application/json
+
+{
+  "phone": "13800001111",
+  "password": "password123"
+}
+
+### 3. 获取食堂列表 (公开接口)
+# @name canteens
+GET {{base_url}}/api/v1/user/canteens
+
+### 4. 获取食堂菜品 (公开接口)
+# @name foods
+GET {{base_url}}/api/v1/user/canteens/1/foods
+
+### 5. 加入购物车 (需要 Token)
+# @name addToCart
+POST {{base_url}}/api/v1/user/cart/items
+token: {{token}}
+Content-Type: application/json
+
+{
+  "foodId": 1,
+  "quantity": 2
+}
+
+### 6. 获取我的购物车 (需要 Token)
+# @name getCart
+GET {{base_url}}/api/v1/user/cart
+token: {{token}}
+
+### 7. 下单 (需要 Token)
+# @name createOrder
+POST {{base_url}}/api/v1/user/orders
+token: {{token}}
+Content-Type: application/json
+
+{
+  "canteenId": 1,
+  "paymentMethod": "WECHAT"
+}
+
+### 8. 支付回调 (内部/模拟接口)
+# @name paymentCallback
+POST {{base_url}}/api/v1/user/orders/payment-callback
+token: {{token}}
+Content-Type: application/json
+
+{
+  "orderId": {{createOrder.response.body.data.id}}
+}
+
+### 9. 预约座位与时段 (需要 Token)
+# @name reserve
+POST {{base_url}}/api/v1/user/reservations
+token: {{token}}
+Content-Type: application/json
+
+{
+  "orderId": {{createOrder.response.body.data.id}},
+  "canteenId": 1,
+  "timeSlotId": 1,
+  "seatId": 1
+}
+
+### 10. 生成取餐二维码 (需要 Token)
+# @name generateQrcode
+POST {{base_url}}/api/v1/user/pickup-qrcodes
+token: {{token}}
+Content-Type: application/json
+
+{
+  "orderId": {{createOrder.response.body.data.id}},
+  "reservationId": {{reserve.response.body.data.id}}
+}
+
+### 11. 管理端扫码核销 (需要 Token)
+# @name scanVerify
+POST {{base_url}}/api/v1/admin/pickup-qrcodes/scan
+token: {{token}}
+Content-Type: application/json
+
+{
+  "qrToken": "{{generateQrcode.response.body.data.qrToken}}",
+  "operatorId": 1
+}
+
+### 12. 查看实时人数看板 (管理端)
+GET {{base_url}}/api/v1/admin/canteens/realtime-occupancy
+token: {{token}}
+
+### 13. 查看菜品销量统计 (管理端)
+GET {{base_url}}/api/v1/admin/statistics/food-sales?startDate=2026-03-01&endDate=2026-03-31
+token: {{token}}

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.me.canteen.mapper.ShoppingCartMapper">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO shopping_cart_items (user_id, food_id, quantity)
+        VALUES (#{userId}, #{foodId}, #{quantity})
+    </insert>
+
+    <update id="updateQuantity">
+        UPDATE shopping_cart_items 
+        SET quantity = #{quantity} 
+        WHERE user_id = #{userId} AND food_id = #{foodId}
+    </update>
+
+    <delete id="deleteByUserIdAndFoodId">
+        DELETE FROM shopping_cart_items 
+        WHERE user_id = #{userId} AND food_id = #{foodId}
+    </delete>
+
+    <select id="findByUserId" resultType="com.me.canteen.entity.ShoppingCartItem">
+        SELECT * FROM shopping_cart_items WHERE user_id = #{userId}
+    </select>
+
+    <select id="findByUserIdAndFoodId" resultType="com.me.canteen.entity.ShoppingCartItem">
+        SELECT * FROM shopping_cart_items 
+        WHERE user_id = #{userId} AND food_id = #{foodId}
+    </select>
+
+    <delete id="clearByUserId">
+        DELETE FROM shopping_cart_items WHERE user_id = #{userId}
+    </delete>
+</mapper>

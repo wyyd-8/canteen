@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.me.canteen.mapper.FoodItemMapper">
+    <select id="findByCanteenId" resultType="com.me.canteen.entity.FoodItem">
+        SELECT * FROM food_items 
+        WHERE canteen_id = #{canteenId}
+        <if test="onSaleOnly">
+            AND is_on_sale = 1
+        </if>
+    </select>
+    <select id="findById" resultType="com.me.canteen.entity.FoodItem">
+        SELECT * FROM food_items WHERE id = #{id}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO food_items (canteen_id, food_name, category, price, stock, is_on_sale)
+        VALUES (#{canteenId}, #{foodName}, #{category}, #{price}, #{stock}, #{isOnSale})
+    </insert>
+
+    <update id="update">
+        UPDATE food_items 
+        SET food_name = #{foodName}, category = #{category}, price = #{price}, 
+            stock = #{stock}, is_on_sale = #{isOnSale}
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete">
+        UPDATE food_items SET is_on_sale = 0 WHERE id = #{id}
+    </update>
+</mapper>

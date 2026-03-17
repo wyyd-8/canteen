@@ -1,0 +1,40 @@
+services:
+  app:
+    build: .
+    container_name: canteen-backend
+    ports:
+      - "8081:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/canteen?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=utf8
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - canteen-network
+
+  mysql:
+    image: mysql:8.0
+    container_name: canteen-mysql
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: canteen
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      - ./docs/db/schema.sql:/docker-entrypoint-initdb.d/1-schema.sql
+      - ./docs/db/data_init.sql:/docker-entrypoint-initdb.d/2-data.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      timeout: 5s
+      retries: 10
+    networks:
+      - canteen-network
+    restart: always
+
+networks:
+  canteen-network:
+    driver: bridge
