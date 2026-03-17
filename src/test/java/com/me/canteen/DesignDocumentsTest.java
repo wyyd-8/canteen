@@ -29,6 +29,7 @@ class DesignDocumentsTest {
                 () -> assertTrue(content.contains("提交订单时无需传入购买明细（`items`）")),
                 () -> assertTrue(content.contains("订单购买明细由后端从购物车读取")),
                 () -> assertTrue(content.contains("/api/v1/user/orders")),
+                () -> assertTrue(content.contains("/api/v1/user/orders/payment-callback")),
                 () -> assertTrue(content.contains("/api/v1/user/reservations")),
                 () -> assertTrue(content.contains("/api/v1/user/pickup-qrcodes")),
                 () -> assertTrue(content.contains("AdminDashboardController")),

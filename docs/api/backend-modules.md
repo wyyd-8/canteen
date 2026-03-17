@@ -119,6 +119,20 @@
   - `totalAmount`
   - `orderStatus`
 
+- **POST** `/api/v1/user/orders/payment-callback`
+- 请求体：
+
+```json
+{
+  "orderId": 200020
+}
+```
+
+- 业务说明：
+  - 该接口用于支付回调通知，传入 `orderId` 表示对应订单已支付
+  - 支付成功后将订单状态更新为 `PAID`
+  - 回调需支持幂等（重复回调不应重复更新）
+
 ### 2.6 UserReservationController（预约就餐座位与时间段）
 
 - **POST** `/api/v1/user/reservations`
