@@ -3,7 +3,7 @@ import json
 import time
 
 # 配置
-BASE_URL = "http://localhost:8081"
+BASE_URL = "http://localhost:8080"
 USER_TOKEN = ""
 USER_ID = None
 CANTEEN_ID = 1
@@ -88,7 +88,7 @@ def test_full_link():
         "orderId": ORDER_ID,
         "canteenId": CANTEEN_ID,
         "timeSlotId": 1, # 假设 ID 为 1
-        "seatId": 1     # 假设 ID 为 1
+        "seatId": 2     # 使用座位 2 避免冲突
     }
     resp = requests.post(f"{BASE_URL}/api/v1/user/reservations", json=reservation_data, headers=headers)
     print(f"状态码: {resp.status_code}, 响应: {resp.text}")
