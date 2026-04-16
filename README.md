@@ -1,56 +1,77 @@
 # 食堂就餐管理系统 (Canteen Management System)
 
-本项目是一个基于 Spring Boot 3 的后端服务，集成了 JWT 认证、MyBatis 持久层框架以及全链路业务流程。
+本项目是一个基于 Spring Boot 3 和 Vue 3 的全栈全链路食堂管理系统。支持用户在线点餐、预约座位、取餐核销以及管理端的实时数据监控。
+
+## 🚀 2026-04-16 更新说明 (v1.1.0)
+- **全栈容器化集成**: 实现了 Docker 多阶段构建，前端 Vue 3 产物自动嵌入后端 JAR 包，实现单镜像一键部署。
+- **动态预约联调**: 完善了预约座位的级联选择逻辑，支持根据食堂时段动态获取可用座位。
+- **管理端功能增强**: 
+  - 新增管理员扫码核销闭环（自动更新订单与预约状态）。
+  - 新增食堂实时占用率看板，支持 30s 自动轮询。
+  - 实现了基于角色的权限控制 (RBAC)。
+- **全链路稳定性修复**: 
+  - 统一应用端口为 `8081`，适配全链路测试。
+  - 修复了 MySQL 在 Docker 环境下的中文乱码及 500 异常处理逻辑。
+  - 更新了自动化测试脚本，支持全流程自动化回归。
+
+---
 
 ## 1. 环境准备
 
 ### 1.1 软件依赖
 - **Java 21**
 - **Maven 3.x**
-- **MySQL 8.0+**
-- **Docker** (推荐，用于快速启动数据库)
+- **Node.js 20+** (本地开发前端需要)
+- **Docker & Docker Compose** (推荐部署方式)
 
-### 1.2 数据库准备 (使用 Docker)
-本项目根目录下提供了 `docker-compose.yml`，可以一键启动 MySQL 并自动初始化表结构和测试数据：
+### 1.2 快速启动 (Docker 推荐)
+本项目支持一键启动后端、前端及数据库：
 
 ```bash
-docker-compose up -d
+docker-compose up --build -d
 ```
 
-启动后，数据库信息如下：
-- **地址**: `localhost:3306`
-- **库名**: `canteen`
-- **用户**: `root`
-- **密码**: `1234`
+启动后：
+- **访问地址**: `http://localhost:8081`
+- **默认管理员**: 手机号 `18888888888` / 密码 `password123`
+- **数据库**: `localhost:3306` (用户: root / 密码: 1234)
 
-*如果不使用 Docker，请手动执行 `docs/db/schema.sql` 和 `docs/db/data_init.sql`。*
+---
 
-## 2. 项目运行
+## 2. 项目结构
+- `src/main/java`: Spring Boot 后端核心逻辑
+- `canteen-frontend`: Vue 3 + Element Plus 前端源码
+- `docs/db`: 数据库初始化脚本 (`schema.sql` 和 `data_init.sql`)
+- `tests`: 全链路自动化测试工具
 
-### 2.1 编译与打包
-```bash
-./mvnw clean package -DskipTests
-```
-
-### 2.2 启动应用
-```bash
-./mvnw spring-boot:run
-```
-默认运行在 `http://localhost:8080`。
+---
 
 ## 3. 全链路测试
 
-项目中包含了一套全链路测试脚本，用于验证从注册到核销的完整业务流程。
+项目中包含了一套 Python 自动化测试脚本，用于模拟“注册 -> 选餐 -> 下单 -> 支付 -> 预约 -> 核销”的完整业务流。
 
-### 3.1 Python 脚本测试 (推荐)
-1. 确保已安装 `requests` 库：`pip install requests`
+### 3.1 运行测试
+1. 安装依赖：`pip install requests pymysql`
 2. 运行脚本：`python tests/full_link_test.py`
 
-### 3.2 REST Client 测试
-打开 `tests/full_link_test.http`，使用 VS Code / Trae 的 REST Client 插件进行交互式测试。
+---
 
-## 4. 核心功能说明
-- **认证**: 使用 JWT 令牌，除公开接口外，所有请求需在 Header 中携带 `token`。
-- **用户端**: 支持注册、登录、浏览食堂、购物车、下单、预约就餐、生成取餐码。
-- **管理端**: 支持扫码核销、实时看板、历史统计、菜品管理。
-- **上下文**: 后端通过 `ThreadLocal` (BaseContext) 自动管理当前登录用户 ID。
+## 4. 核心功能
+
+### 4.1 用户端 (USER)
+- **在线点餐**: 浏览食堂菜品，支持购物车和订单支付模拟。
+- **智能预约**: 支付后可选择就餐时段和具体座位，生成取餐二维码。
+- **扫码取餐**: 展示取餐码供管理员核销。
+
+### 4.2 管理端 (ADMIN)
+- **实时看板**: 监控各食堂当前就餐人数及座位占用率。
+- **扫码核销**: 使用取餐码完成用户到店确认，自动关闭订单。
+- **统计报表**: 查看菜品销量排行及每日就餐趋势。
+- **菜品管理**: 维护食堂菜品库，支持实时上下架。
+
+---
+
+## 5. 技术栈
+- **后端**: Spring Boot 3.4, MyBatis, JWT, Maven
+- **前端**: Vue 3, Vite, Element Plus, Axios
+- **部署**: Docker, Docker Compose, MySQL 8.0

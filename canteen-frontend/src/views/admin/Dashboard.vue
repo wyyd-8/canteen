@@ -40,29 +40,51 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
+import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const occupancyData = ref([])
+let pollingTimer = null
 
 const getStats = async () => {
   try {
     const data = await request.get('/admin/canteens/realtime-occupancy')
-    occupancyData.value = data
+    occupancyData.value = data || []
   } catch (error) {
     console.error(error)
+    // 轮询时的错误不要频繁提示用户，只在首次加载时提示
+    if (!occupancyData.value || occupancyData.value.length === 0) {
+      ElMessage.error('获取实时数据失败')
+    }
   }
 }
 
+// 动态获取食堂名称（优先从数据中获取，fallback到映射表）
 const getCanteenName = (id) => {
-  const names = { 1: '第一食堂', 2: '第二食堂' }
+  // 首先尝试从当前数据中查找
+  const canteen = occupancyData.value.find(item => item.canteenId === id)
+  if (canteen && canteen.canteenName) {
+    return canteen.canteenName
+  }
+
+  // 备用映射表（建议后续改为从API获取完整列表）
+  const names = { 1: '第一食堂', 2: '第二食堂', 3: '第三食堂' }
   return names[id] || `食堂 ${id}`
 }
 
 onMounted(() => {
   getStats()
   // 30秒轮询一次
-  setInterval(getStats, 30000)
+  pollingTimer = setInterval(getStats, 30000)
+})
+
+// 组件卸载时清理定时器，防止内存泄漏
+onUnmounted(() => {
+  if (pollingTimer) {
+    clearInterval(pollingTimer)
+    pollingTimer = null
+  }
 })
 </script>
 

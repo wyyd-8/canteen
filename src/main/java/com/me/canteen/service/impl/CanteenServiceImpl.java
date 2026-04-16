@@ -3,14 +3,20 @@ package com.me.canteen.service.impl;
 import com.me.canteen.dto.CanteenResponseDTO;
 import com.me.canteen.entity.Canteen;
 import com.me.canteen.entity.FoodItem;
+import com.me.canteen.entity.CanteenTimeSlot;
+import com.me.canteen.entity.Seat;
 import com.me.canteen.mapper.CanteenMapper;
+import com.me.canteen.mapper.CanteenTimeSlotMapper;
 import com.me.canteen.mapper.FoodItemMapper;
 import com.me.canteen.mapper.ReservationMapper;
+import com.me.canteen.mapper.SeatMapper;
 import com.me.canteen.service.CanteenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class CanteenServiceImpl implements CanteenService {
@@ -23,6 +29,12 @@ public class CanteenServiceImpl implements CanteenService {
 
     @Autowired
     private ReservationMapper reservationMapper;
+
+    @Autowired
+    private CanteenTimeSlotMapper canteenTimeSlotMapper;
+
+    @Autowired
+    private SeatMapper seatMapper;
 
     @Override
     public List<CanteenResponseDTO> listCanteens(Long timeSlotId) {
@@ -48,17 +60,35 @@ public class CanteenServiceImpl implements CanteenService {
     }
 
     @Override
+    @Transactional
     public void addFood(FoodItem food) {
         foodItemMapper.insert(food);
     }
 
     @Override
+    @Transactional
     public void updateFood(FoodItem food) {
         foodItemMapper.update(food);
     }
 
     @Override
+    @Transactional
     public void deleteFood(Long foodId) {
         foodItemMapper.delete(foodId);
+    }
+
+    @Override
+    public List<CanteenTimeSlot> listTimeSlots(Long canteenId) {
+        return canteenTimeSlotMapper.findByCanteenId(canteenId);
+    }
+
+    @Override
+    public List<Seat> listAvailableSeats(Long canteenId, Long timeSlotId) {
+        List<Seat> allSeats = seatMapper.findByCanteenId(canteenId);
+        List<Long> reservedSeatIds = reservationMapper.findReservedSeatIds(timeSlotId);
+        
+        return allSeats.stream()
+                .filter(seat -> !reservedSeatIds.contains(seat.getId()))
+                .collect(Collectors.toList());
     }
 }

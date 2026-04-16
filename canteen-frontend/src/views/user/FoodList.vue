@@ -16,7 +16,7 @@
       </el-card>
     </div>
 
-    <div class="cart-bar" v-if="cartTotal > 0" @click="$router.push('/user/cart')">
+    <div class="cart-bar" v-if="cartTotal > 0" @click="goToCart">
       <div class="cart-info">
         <el-badge :value="cartCount" class="item">
           <el-icon :size="24"><ShoppingCart /></el-icon>
@@ -30,20 +30,29 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const route = useRoute()
+const router = useRouter()
 const foods = ref([])
 const cart = ref({ items: [], totalAmount: 0 })
+const loading = ref(false)
+
+// 获取当前食堂ID
+const canteenId = computed(() => route.params.id)
 
 const getFoods = async () => {
   try {
-    const data = await request.get(`/user/canteens/${route.params.id}/foods`)
+    loading.value = true
+    const data = await request.get(`/user/canteens/${canteenId.value}/foods`)
     foods.value = data
   } catch (error) {
     console.error(error)
+    ElMessage.error('获取菜品列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
@@ -53,29 +62,53 @@ const getCart = async () => {
     cart.value = data
   } catch (error) {
     console.error(error)
+    // 购物车获取失败不阻塞主流程
   }
 }
 
 const addToCart = async (food) => {
+  if (!food || !food.id) {
+    return ElMessage.error('菜品信息异常')
+  }
+
+  if (food.stock <= 0) {
+    return ElMessage.warning('该菜品已售罄')
+  }
+
   try {
     await request.post('/user/cart/items', {
       foodId: food.id,
-      quantity: 1
+      quantity: 1,
+      canteenId: parseInt(canteenId.value)
     })
     ElMessage.success('已加入购物车')
     getCart()
   } catch (error) {
     console.error(error)
+    ElMessage.error(error.response?.data?.message || '加入购物车失败')
   }
 }
 
+const goToCart = () => {
+  router.push({
+    path: '/user/cart',
+    query: { canteenId: canteenId.value }
+  })
+}
+
 const cartCount = computed(() => {
+  if (!cart.value.items) return 0
   return cart.value.items.reduce((sum, item) => sum + item.quantity, 0)
 })
 
-const cartTotal = computed(() => cart.value.totalAmount)
+const cartTotal = computed(() => cart.value.totalAmount || 0)
 
 onMounted(() => {
+  if (!canteenId.value) {
+    ElMessage.error('缺少食堂ID参数')
+    router.push('/user/canteens')
+    return
+  }
   getFoods()
   getCart()
 })

@@ -6,6 +6,7 @@ import com.me.canteen.mapper.PickupQrCodeMapper;
 import com.me.canteen.service.QrcodeService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -16,6 +17,7 @@ public class QrcodeServiceImpl implements QrcodeService {
     private PickupQrCodeMapper pickupQrCodeMapper;
 
     @Override
+    @Transactional
     public QrcodeResponseDTO generate(Long userId, Long orderId, Long reservationId) {
         String token = UUID.randomUUID().toString().replace("-", "");
         

@@ -1,5 +1,7 @@
 package com.me.canteen.service.impl;
 
+import com.me.canteen.common.BusinessException;
+import com.me.canteen.common.ErrorCode;
 import com.me.canteen.dto.OrderDetailsDTO;
 import com.me.canteen.entity.FoodItem;
 import com.me.canteen.entity.Order;
@@ -37,7 +39,7 @@ public class OrderServiceImpl implements OrderService {
     public Order createOrder(Long userId, Long canteenId, String paymentMethod) {
         List<ShoppingCartItem> cartItems = shoppingCartMapper.findByUserId(userId);
         if (cartItems.isEmpty()) {
-            throw new RuntimeException("Cart is empty");
+            throw new BusinessException(ErrorCode.CART_EMPTY);
         }
 
         Order order = new Order();
@@ -78,7 +80,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void handlePayment(Long orderId) {
+        // 验证订单是否存在
+        Order order = orderMapper.findById(orderId);
+        if (order == null) {
+            throw new RuntimeException("Order not found");
+        }
+
+        // 幂等性检查：如果订单已经是PAID状态，直接返回成功
+        if ("PAID".equals(order.getOrderStatus())) {
+            return; // 幂等处理，重复支付不报错
+        }
+
+        // 状态流转校验：只有CREATED状态的订单才能支付
+        if (!"CREATED".equals(order.getOrderStatus())) {
+            throw new RuntimeException("Order status is not valid for payment, current status: " + order.getOrderStatus());
+        }
+
         orderMapper.updateStatus(orderId, "PAID", LocalDateTime.now());
     }
 

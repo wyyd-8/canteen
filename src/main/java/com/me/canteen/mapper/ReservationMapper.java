@@ -10,7 +10,10 @@ public interface ReservationMapper {
     int insert(Reservation reservation);
     Reservation findById(@Param("id") Long id);
     Reservation findBySlotAndSeat(@Param("timeSlotId") Long timeSlotId, @Param("seatId") Long seatId);
+    Reservation findByUserAndSlot(@Param("userId") Long userId, @Param("timeSlotId") Long timeSlotId);
     int countReserved(@Param("canteenId") Long canteenId, @Param("timeSlotId") Long timeSlotId);
     int countByStatus(@Param("canteenId") Long canteenId, @Param("timeSlotId") Long timeSlotId, @Param("status") String status);
+    List<Long> findReservedSeatIds(@Param("timeSlotId") Long timeSlotId);
+    int updateStatus(@Param("id") Long id, @Param("status") String status);
     List<com.me.canteen.dto.DiningStatisticsDTO> statisticsByDateRange(@Param("canteenId") Long canteenId, @Param("startDate") java.time.LocalDate startDate, @Param("endDate") java.time.LocalDate endDate);
 }

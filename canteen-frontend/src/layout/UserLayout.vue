@@ -4,6 +4,7 @@
       <el-header class="header">
         <div class="logo" @click="$router.push('/')">Canteen</div>
         <div class="nav">
+          <el-button link v-if="role === 'ADMIN'" @click="$router.push('/admin/dashboard')" type="primary">管理端</el-button>
           <el-button link @click="$router.push('/user/canteens')">食堂</el-button>
           <el-button link @click="$router.push('/user/cart')">购物车</el-button>
           <el-button link @click="$router.push('/user/qrcode')">取餐码</el-button>
@@ -20,9 +21,10 @@
 <script setup>
 import { useRouter } from 'vue-router'
 const router = useRouter()
+const role = localStorage.getItem('role')
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
+  localStorage.clear()
   router.push('/user/login')
 }
 </script>

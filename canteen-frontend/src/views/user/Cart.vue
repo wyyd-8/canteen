@@ -17,7 +17,7 @@
       </div>
       <div class="total-section">
         <span>总计: ￥{{ cart.totalAmount }}</span>
-        <el-button type="danger" size="large" @click="handleCheckout">去下单</el-button>
+        <el-button type="danger" size="large" @click="handleCheckout" :loading="loading">去下单</el-button>
       </div>
     </el-card>
     <el-empty v-else description="购物车是空的" />
@@ -26,12 +26,14 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const router = useRouter()
+const route = useRoute()
 const cart = ref({ items: [], totalAmount: 0 })
+const loading = ref(false)
 
 const getCart = async () => {
   try {
@@ -39,6 +41,7 @@ const getCart = async () => {
     cart.value = data
   } catch (error) {
     console.error(error)
+    ElMessage.error('获取购物车失败')
   }
 }
 
@@ -46,6 +49,7 @@ const handleQuantityChange = async (item, val) => {
   try {
     if (val === 0) {
       await request.delete(`/user/cart/items/${item.foodId}`)
+      ElMessage.success('已移除商品')
     } else {
       await request.put(`/user/cart/items/${item.foodId}`, {
         quantity: val
@@ -54,20 +58,41 @@ const handleQuantityChange = async (item, val) => {
     getCart()
   } catch (error) {
     console.error(error)
+    ElMessage.error('更新购物车失败')
   }
 }
 
 const handleCheckout = async () => {
+  if (!cart.value.items || cart.value.items.length === 0) {
+    return ElMessage.warning('购物车是空的')
+  }
+
+  // 从路由参数获取canteenId，如果没有则尝试从购物车第一项获取
+  let canteenId = route.query.canteenId
+  if (!canteenId && cart.value.items.length > 0) {
+    // 如果后端返回了canteenId信息
+    canteenId = cart.value.items[0].canteenId
+  }
+
+  if (!canteenId) {
+    ElMessage.warning('请先选择食堂')
+    router.push('/user/canteens')
+    return
+  }
+
   try {
-    // 假设下单到第一个食堂，实际应从上下文获取或让用户选
+    loading.value = true
     const order = await request.post('/user/orders', {
-      canteenId: 1, 
+      canteenId: parseInt(canteenId),
       paymentMethod: 'WECHAT'
     })
     ElMessage.success('下单成功')
     router.push(`/user/orders/${order.id}`)
   } catch (error) {
     console.error(error)
+    ElMessage.error(error.response?.data?.message || '下单失败，请重试')
+  } finally {
+    loading.value = false
   }
 }
 

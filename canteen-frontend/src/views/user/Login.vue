@@ -42,16 +42,38 @@ const handleLogin = async () => {
   if (!loginForm.phone || !loginForm.password) {
     return ElMessage.warning('请填写完整信息')
   }
+
+  // 简单的手机号格式验证
+  if (!/^1[3-9]\d{9}$/.test(loginForm.phone)) {
+    return ElMessage.warning('请输入正确的手机号')
+  }
+
   loading.value = true
   try {
     const data = await request.post('/user/login', loginForm)
+    // 存储登录信息到localStorage
     localStorage.setItem('token', data.token)
-    localStorage.setItem('userId', data.id)
-    localStorage.setItem('userName', data.userName)
+    localStorage.setItem('userId', data.id || data.userId)
+    localStorage.setItem('userName', data.userName || data.name || data.phone)
+    localStorage.setItem('role', data.role)
     ElMessage.success('登录成功')
-    router.push('/')
+    
+    if (data.role === 'ADMIN') {
+      router.push('/admin/dashboard')
+    } else {
+      router.push('/')
+    }
   } catch (error) {
     console.error(error)
+    // 显示友好的错误信息
+    const message = error.response?.data?.message
+    if (message) {
+      ElMessage.error(message)
+    } else if (error.response?.status === 401) {
+      ElMessage.error('手机号或密码错误')
+    } else {
+      ElMessage.error('登录失败，请稍后重试')
+    }
   } finally {
     loading.value = false
   }

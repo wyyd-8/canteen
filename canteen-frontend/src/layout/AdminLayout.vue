@@ -27,6 +27,10 @@
             <el-icon><PieChart /></el-icon>
             <span>统计报表</span>
           </el-menu-item>
+          <el-menu-item index="/user/canteens">
+            <el-icon><House /></el-icon>
+            <span>返回用户端</span>
+          </el-menu-item>
           <el-menu-item @click="handleLogout">
             <el-icon><SwitchButton /></el-icon>
             <span>退出登录</span>
@@ -36,7 +40,7 @@
       <el-container>
         <el-header class="header">
           <div class="breadcrumb">{{ $route.meta.title }}</div>
-          <div class="user-info">管理员</div>
+          <div class="user-info">{{ userName }}</div>
         </el-header>
         <el-main class="main">
           <router-view />
@@ -49,9 +53,10 @@
 <script setup>
 import { useRouter } from 'vue-router'
 const router = useRouter()
+const userName = localStorage.getItem('userName') || '管理员'
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
+  localStorage.clear()
   router.push('/user/login')
 }
 </script>

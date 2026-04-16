@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 @Data
 public class RealtimeOccupancyDTO {
     private Long canteenId;
+    private String canteenName;
     private Integer currentDiningCount;
     private Integer reservedCountInCurrentSlot;
     private Integer capacity;

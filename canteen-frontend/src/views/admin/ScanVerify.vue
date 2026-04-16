@@ -14,7 +14,7 @@
           clearable
         >
           <template #append>
-            <el-button @click="handleVerify">核销</el-button>
+            <el-button @click="handleVerify" :loading="loading">核销</el-button>
           </template>
         </el-input>
       </div>
@@ -56,29 +56,52 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const qrToken = ref('')
 const result = ref(null)
+const loading = ref(false)
+
+// 获取当前管理员ID
+const getOperatorId = () => {
+  const userId = localStorage.getItem('userId')
+  if (userId) {
+    return parseInt(userId)
+  }
+
+  ElMessage.error('无法获取操作员信息，请重新登录')
+  return null
+}
 
 const handleVerify = async () => {
-  if (!qrToken.value) return
+  if (!qrToken.value.trim()) {
+    return ElMessage.warning('请输入取餐码')
+  }
+
+  const operatorId = getOperatorId()
+  if (!operatorId) return
+
   try {
+    loading.value = true
+    result.value = null
     const data = await request.post('/admin/pickup-qrcodes/scan', {
       qrToken: qrToken.value,
-      operatorId: 1 // 实际应从 store 获取
+      operatorId: operatorId
     })
     result.value = data
     if (data.verified) {
       ElMessage.success('核销成功')
       qrToken.value = '' // 清空输入框
     } else {
-      ElMessage.error(data.message)
+      ElMessage.error(data.message || '核销失败')
     }
   } catch (error) {
     console.error(error)
+    ElMessage.error(error.response?.data?.message || '核销失败，请重试')
+  } finally {
+    loading.value = false
   }
 }
 </script>

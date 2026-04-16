@@ -9,4 +9,5 @@ public class UserLoginVO {
     private Long id;
     private String userName;
     private String token;
+    private String role;
 }

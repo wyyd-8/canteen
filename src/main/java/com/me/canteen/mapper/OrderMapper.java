@@ -8,5 +8,6 @@ import org.apache.ibatis.annotations.Param;
 public interface OrderMapper {
     int insert(Order order);
     int updateStatus(@Param("id") Long id, @Param("status") String status, @Param("paidAt") java.time.LocalDateTime paidAt);
+    int updateOrderStatus(@Param("id") Long id, @Param("status") String status);
     Order findById(@Param("id") Long id);
 }

@@ -1,4 +1,18 @@
 SET NAMES utf8mb4;
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE qr_scan_logs;
+TRUNCATE TABLE pickup_qr_codes;
+TRUNCATE TABLE reservations;
+TRUNCATE TABLE order_items;
+TRUNCATE TABLE orders;
+TRUNCATE TABLE shopping_cart_items;
+TRUNCATE TABLE seats;
+TRUNCATE TABLE canteen_time_slots;
+TRUNCATE TABLE food_items;
+TRUNCATE TABLE canteens;
+TRUNCATE TABLE users;
+SET FOREIGN_KEY_CHECKS = 1;
+
 -- 初始化测试数据 (V1)
 -- 请在执行全链路测试前运行此脚本
 
@@ -6,17 +20,21 @@ SET NAMES utf8mb4;
 INSERT INTO canteens (canteen_code, canteen_name, capacity, is_active) 
 VALUES ('C001', '第一食堂', 200, 1), ('C002', '第二食堂', 150, 1);
 
--- 2. 初始化时间段 (假设今天是 2026-03-17)
+-- 2. 初始化时间段 (假设今天是 2026-04-16)
 INSERT INTO canteen_time_slots (canteen_id, slot_date, start_time, end_time, reservation_limit)
-VALUES (1, '2026-03-17', '11:00:00', '12:00:00', 50),
-       (1, '2026-03-17', '12:00:00', '13:00:00', 50),
-       (2, '2026-03-17', '11:30:00', '12:30:00', 40);
+VALUES (1, '2026-04-16', '11:00:00', '12:00:00', 50),
+       (1, '2026-04-16', '12:00:00', '13:00:00', 50),
+       (2, '2026-04-16', '11:30:00', '12:30:00', 40);
 
 -- 3. 初始化座位
 INSERT INTO seats (canteen_id, seat_no, seat_area, is_active)
 VALUES (1, 'A-001', '一楼东区', 1),
        (1, 'A-002', '一楼东区', 1),
-       (2, 'B-101', '二楼窗口旁', 1);
+       (1, 'A-003', '一楼东区', 1),
+       (1, 'A-004', '一楼东区', 1),
+       (1, 'A-005', '一楼东区', 1),
+       (2, 'B-101', '二楼窗口旁', 1),
+       (2, 'B-102', '二楼窗口旁', 1);
 
 -- 4. 初始化菜品
 INSERT INTO food_items (canteen_id, food_name, category, price, stock, is_on_sale)

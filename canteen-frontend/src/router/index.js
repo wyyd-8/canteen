@@ -93,8 +93,13 @@ const router = createRouter({
 router.beforeEach((to, from, next) => {
   document.title = `${to.meta.title || '食堂管理'} - Canteen`
   const token = localStorage.getItem('token')
+  const role = localStorage.getItem('role')
+
   if (!token && to.path !== '/user/login' && to.path !== '/user/register') {
     next('/user/login')
+  } else if (to.path.startsWith('/admin') && role !== 'ADMIN') {
+    ElMessage.error('无权访问管理端')
+    next('/user/canteens')
   } else {
     next()
   }

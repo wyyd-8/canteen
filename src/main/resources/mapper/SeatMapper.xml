@@ -4,4 +4,8 @@
     <select id="findById" resultType="com.me.canteen.entity.Seat">
         SELECT * FROM seats WHERE id = #{id}
     </select>
+
+    <select id="findByCanteenId" resultType="com.me.canteen.entity.Seat">
+        SELECT * FROM seats WHERE canteen_id = #{canteenId} AND is_active = 1
+    </select>
 </mapper>

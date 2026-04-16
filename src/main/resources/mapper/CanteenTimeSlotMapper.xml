@@ -13,4 +13,8 @@
         AND end_time &gt;= #{time}
         LIMIT 1
     </select>
+
+    <select id="findByCanteenId" resultType="com.me.canteen.entity.CanteenTimeSlot">
+        SELECT * FROM canteen_time_slots WHERE canteen_id = #{canteenId}
+    </select>
 </mapper>

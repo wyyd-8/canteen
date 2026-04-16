@@ -11,8 +11,13 @@
     </select>
 
     <select id="findBySlotAndSeat" resultType="com.me.canteen.entity.Reservation">
-        SELECT * FROM reservations 
+        SELECT * FROM reservations
         WHERE time_slot_id = #{timeSlotId} AND seat_id = #{seatId} AND reservation_status = 'RESERVED'
+    </select>
+
+    <select id="findByUserAndSlot" resultType="com.me.canteen.entity.Reservation">
+        SELECT * FROM reservations
+        WHERE user_id = #{userId} AND time_slot_id = #{timeSlotId} AND reservation_status = 'RESERVED'
     </select>
 
     <select id="countReserved" resultType="int">
@@ -32,6 +37,16 @@
         </if>
         AND reservation_status = #{status}
     </select>
+
+    <select id="findReservedSeatIds" resultType="long">
+        SELECT seat_id FROM reservations 
+        WHERE time_slot_id = #{timeSlotId} 
+        AND reservation_status = 'RESERVED'
+    </select>
+
+    <update id="updateStatus">
+        UPDATE reservations SET reservation_status = #{status} WHERE id = #{id}
+    </update>
 
     <select id="statisticsByDateRange" resultType="com.me.canteen.dto.DiningStatisticsDTO">
         SELECT 

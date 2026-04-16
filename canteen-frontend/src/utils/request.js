@@ -38,7 +38,8 @@ request.interceptors.response.use(
       localStorage.removeItem('token')
       router.push('/user/login')
     } else {
-      ElMessage.error(error.message || 'Network Error')
+      const message = error.response?.data?.message || error.message || 'Network Error'
+      ElMessage.error(message)
     }
     return Promise.reject(error)
   }

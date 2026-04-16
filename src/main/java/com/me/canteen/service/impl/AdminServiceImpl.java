@@ -1,5 +1,7 @@
 package com.me.canteen.service.impl;
 
+import com.me.canteen.common.BusinessException;
+import com.me.canteen.common.ErrorCode;
 import com.me.canteen.dto.*;
 import com.me.canteen.entity.*;
 import com.me.canteen.mapper.*;
@@ -48,53 +50,80 @@ public class AdminServiceImpl implements AdminService {
     @Override
     @Transactional
     public ScanResponseDTO scanQrCode(String qrToken, Long operatorId) {
-        ScanResponseDTO response = new ScanResponseDTO();
+        // 验证operatorId
+        if (operatorId == null) {
+            throw new BusinessException(ErrorCode.PARAM_ERROR, "Operator ID is required");
+        }
+
+        // 验证操作员是否存在
+        User operator = userMapper.findById(operatorId);
+        if (operator == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "Operator not found");
+        }
+
         PickupQrCode qrCode = pickupQrCodeMapper.findByToken(qrToken);
 
         if (qrCode == null) {
-            response.setVerified(false);
-            response.setMessage("Invalid QR Code");
-            return response;
+            throw new BusinessException(ErrorCode.QR_CODE_INVALID);
         }
 
         if ("USED".equals(qrCode.getQrStatus())) {
             logScan(qrCode.getId(), operatorId, "REPEATED");
-            response.setVerified(false);
-            response.setMessage("QR Code already used");
-            return response;
+            throw new BusinessException(ErrorCode.QR_CODE_USED);
         }
 
         if (qrCode.getExpiresAt().isBefore(LocalDateTime.now())) {
             logScan(qrCode.getId(), operatorId, "EXPIRED");
-            response.setVerified(false);
-            response.setMessage("QR Code expired");
-            return response;
+            throw new BusinessException(ErrorCode.QR_CODE_EXPIRED);
         }
 
         // Mark as used
         pickupQrCodeMapper.updateStatus(qrCode.getId(), "USED", LocalDateTime.now());
         logScan(qrCode.getId(), operatorId, "SUCCESS");
 
-        // Gather details
+        // 更新预约状态为已核销/已到店
+        reservationMapper.updateStatus(qrCode.getReservationId(), "CHECKED_IN");
+        // 更新订单状态为已完成
+        orderMapper.updateOrderStatus(qrCode.getOrderId(), "COMPLETED");
+
+        // Gather details - 添加空值检查防止NPE
+        ScanResponseDTO response = new ScanResponseDTO();
+        
         User user = userMapper.findById(qrCode.getUserId());
+        if (user == null) {
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND, "User not found");
+        }
+
         Order order = orderMapper.findById(qrCode.getOrderId());
         Reservation reservation = reservationMapper.findById(qrCode.getReservationId());
-        Canteen canteen = canteenMapper.findById(reservation.getCanteenId());
-        CanteenTimeSlot timeSlot = canteenTimeSlotMapper.findById(reservation.getTimeSlotId());
-        Seat seat = seatMapper.findById(reservation.getSeatId());
 
         response.setVerified(true);
         response.setMessage("Scan successful");
         response.setUserId(user.getId());
         response.setUserName(user.getUserName());
-        response.setOrderNo(order.getOrderNo());
-        response.setTotalAmount(order.getTotalAmount());
-        response.setPaidAt(order.getPaidAt());
-        response.setItems(orderItemMapper.findByOrderId(order.getId()));
-        
-        response.setCanteenName(canteen.getCanteenName());
-        response.setTimeSlot(timeSlot.getStartTime() + "-" + timeSlot.getEndTime());
-        response.setSeatNo(seat.getSeatNo());
+
+        if (order != null) {
+            response.setOrderNo(order.getOrderNo());
+            response.setTotalAmount(order.getTotalAmount());
+            response.setPaidAt(order.getPaidAt());
+            response.setItems(orderItemMapper.findByOrderId(order.getId()));
+        }
+
+        if (reservation != null) {
+            Canteen canteen = canteenMapper.findById(reservation.getCanteenId());
+            CanteenTimeSlot timeSlot = canteenTimeSlotMapper.findById(reservation.getTimeSlotId());
+            Seat seat = seatMapper.findById(reservation.getSeatId());
+
+            if (canteen != null) {
+                response.setCanteenName(canteen.getCanteenName());
+            }
+            if (timeSlot != null) {
+                response.setTimeSlot(timeSlot.getStartTime() + "-" + timeSlot.getEndTime());
+            }
+            if (seat != null) {
+                response.setSeatNo(seat.getSeatNo());
+            }
+        }
 
         return response;
     }
@@ -128,6 +157,7 @@ public class AdminServiceImpl implements AdminService {
 
             RealtimeOccupancyDTO dto = new RealtimeOccupancyDTO();
             dto.setCanteenId(canteen.getId());
+            dto.setCanteenName(canteen.getCanteenName());
             dto.setCapacity(canteen.getCapacity());
             
             // CHECKED_IN = Current dining

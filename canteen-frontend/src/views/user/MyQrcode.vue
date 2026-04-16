@@ -22,24 +22,36 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
+const route = useRoute()
 const qrData = ref(null)
+const loading = ref(false)
 
 const getQrCode = async () => {
+  // 从路由参数获取orderId和reservationId
+  const orderId = route.query.orderId
+  const reservationId = route.query.reservationId
+
+  if (!orderId || !reservationId) {
+    ElMessage.warning('缺少订单或预约信息')
+    return
+  }
+
   try {
-    // 简化逻辑：这里实际应该根据订单ID获取，演示用直接尝试生成
-    // 或者从个人中心进入。这里假设从最后一次预约中生成
-    // 实际项目中应有专门获取当前有效码的接口
-    // 为了全链路演示，我们在订单详情页已经有了跳转
-    // 这里简单模拟一个请求
+    loading.value = true
     const data = await request.post('/user/pickup-qrcodes', {
-      orderId: 1, // Mock
-      reservationId: 1 // Mock
+      orderId: parseInt(orderId),
+      reservationId: parseInt(reservationId)
     })
     qrData.value = data
   } catch (error) {
     console.error(error)
+    ElMessage.error(error.response?.data?.message || '获取取餐码失败')
+  } finally {
+    loading.value = false
   }
 }
 

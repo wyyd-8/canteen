@@ -26,10 +26,12 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
 const router = useRouter()
 const canteens = ref([])
+const loading = ref(false)
 
 const customColors = [
   { color: '#67C23A', percentage: 40 },
@@ -44,15 +46,26 @@ const calculateRate = (item) => {
 
 const getCanteens = async () => {
   try {
+    loading.value = true
     const data = await request.get('/user/canteens')
     canteens.value = data
   } catch (error) {
     console.error(error)
+    ElMessage.error('获取食堂列表失败')
+  } finally {
+    loading.value = false
   }
 }
 
 const goToFoods = (canteen) => {
-  router.push(`/user/canteens/${canteen.canteenId}/foods`)
+  if (!canteen || !canteen.canteenId) {
+    ElMessage.error('食堂信息异常')
+    return
+  }
+  router.push({
+    path: `/user/canteens/${canteen.canteenId}/foods`,
+    query: { canteenName: canteen.canteenName }
+  })
 }
 
 onMounted(() => {
