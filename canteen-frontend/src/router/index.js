@@ -25,13 +25,7 @@ const routes = [
         path: 'canteens',
         name: 'CanteenList',
         component: () => import('@/views/user/CanteenList.vue'),
-        meta: { title: '食堂列表' }
-      },
-      {
-        path: 'canteens/:id/foods',
-        name: 'FoodList',
-        component: () => import('@/views/user/FoodList.vue'),
-        meta: { title: '选餐' }
+        meta: { title: '食堂与选餐' }
       },
       {
         path: 'cart',

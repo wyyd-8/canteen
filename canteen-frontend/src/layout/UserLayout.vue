@@ -51,8 +51,9 @@ const handleLogout = () => {
   cursor: pointer;
 }
 .main {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 15px;
+  max-width: 100%;
+  margin: 0;
+  padding: 20px;
+  min-height: calc(100vh - 60px); /* Assuming header is 60px */
 }
 </style>

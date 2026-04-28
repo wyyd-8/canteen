@@ -6,10 +6,12 @@
           <div class="details">
             <h4 class="name">{{ food.foodName }}</h4>
             <p class="category">{{ food.category }}</p>
-            <p class="price">￥{{ food.price }}</p>
-            <p class="stock">库存: {{ food.stock }}</p>
           </div>
           <div class="action">
+            <div class="price-stock">
+              <span class="price">￥{{ food.price }}</span>
+              <span class="stock">库存: {{ food.stock }}</span>
+            </div>
             <el-button type="danger" circle icon="Plus" @click="addToCart(food)" :disabled="food.stock <= 0" />
           </div>
         </div>
@@ -29,24 +31,28 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, computed, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import request from '@/utils/request'
 
-const route = useRoute()
+const props = defineProps({
+  canteenId: {
+    type: [Number, String],
+    required: true
+  }
+})
+
 const router = useRouter()
 const foods = ref([])
 const cart = ref({ items: [], totalAmount: 0 })
 const loading = ref(false)
 
-// 获取当前食堂ID
-const canteenId = computed(() => route.params.id)
-
 const getFoods = async () => {
+  if (!props.canteenId) return
   try {
     loading.value = true
-    const data = await request.get(`/user/canteens/${canteenId.value}/foods`)
+    const data = await request.get(`/user/canteens/${props.canteenId}/foods`)
     foods.value = data
   } catch (error) {
     console.error(error)
@@ -79,7 +85,7 @@ const addToCart = async (food) => {
     await request.post('/user/cart/items', {
       foodId: food.id,
       quantity: 1,
-      canteenId: parseInt(canteenId.value)
+      canteenId: parseInt(props.canteenId)
     })
     ElMessage.success('已加入购物车')
     getCart()
@@ -92,7 +98,7 @@ const addToCart = async (food) => {
 const goToCart = () => {
   router.push({
     path: '/user/cart',
-    query: { canteenId: canteenId.value }
+    query: { canteenId: props.canteenId }
   })
 }
 
@@ -103,23 +109,32 @@ const cartCount = computed(() => {
 
 const cartTotal = computed(() => cart.value.totalAmount || 0)
 
-onMounted(() => {
-  if (!canteenId.value) {
-    ElMessage.error('缺少食堂ID参数')
-    router.push('/user/canteens')
-    return
+watch(() => props.canteenId, (newVal) => {
+  if (newVal) {
+    getFoods()
+    getCart()
   }
-  getFoods()
-  getCart()
-})
+}, { immediate: true })
 </script>
 
 <style scoped>
 .food-list-container {
-  padding-bottom: 80px;
+  position: relative;
+  height: 100%;
+}
+.food-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  padding-bottom: 20px;
 }
 .food-card {
-  margin-bottom: 10px;
+  border-radius: 8px;
+  transition: all 0.3s;
+}
+.food-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 .food-info {
   display: flex;
@@ -129,31 +144,41 @@ onMounted(() => {
 .name {
   margin: 0 0 5px 0;
   font-size: 16px;
+  color: #303133;
 }
 .category {
   font-size: 12px;
-  color: #999;
+  color: #909399;
   margin: 2px 0;
 }
+.action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.price-stock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
 .price {
-  color: #FF6B6B;
+  color: #F56C6C;
   font-weight: bold;
-  margin: 5px 0;
+  font-size: 16px;
 }
 .stock {
   font-size: 12px;
-  color: #b2bec3;
+  color: #C0C4CC;
+  margin-top: 2px;
 }
 .cart-bar {
-  position: fixed;
+  position: sticky;
   bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 90%;
-  max-width: 540px;
+  left: 0;
+  right: 0;
   height: 60px;
-  background-color: #2d3436;
-  border-radius: 30px;
+  background-color: #303133;
+  border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -161,7 +186,8 @@ onMounted(() => {
   color: #fff;
   box-shadow: 0 4px 15px rgba(0,0,0,0.3);
   cursor: pointer;
-  z-index: 1000;
+  z-index: 100;
+  margin-top: 20px;
 }
 .cart-info {
   display: flex;
@@ -171,5 +197,6 @@ onMounted(() => {
   margin-left: 15px;
   font-size: 18px;
   font-weight: bold;
+  color: #FFF;
 }
 </style>
