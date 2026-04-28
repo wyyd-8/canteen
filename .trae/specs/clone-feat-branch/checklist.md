@@ -1,0 +1,4 @@
+- [x] 当前目录下包含 feat/v1.1.0-fullstack 分支的完整代码（后端、前端、Docker 配置、数据库脚本等）
+- [x] `.vscode` 目录保留不丢失
+- [x] `git branch` 显示当前处于 `feat/v1.1.0-fullstack` 分支
+- [x] 远程仓库 origin 正确指向 `https://github.com/wyyd-8/canteen`
